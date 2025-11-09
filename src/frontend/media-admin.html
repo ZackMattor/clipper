@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Source Media Manager</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Source Media</h1>
+      <p>Monitor ingestion status for every source folder and kick off subtitle processing.</p>
+      <nav class="top-nav">
+        <a href="index.html">Clips Dashboard</a>
+        <a href="media-admin.html" class="active">Source Media</a>
+      </nav>
+    </header>
+
+    <section class="panel media-admin">
+      <div class="media-admin__header">
+        <div>
+          <h2>Library</h2>
+          <p class="media-admin__subtitle">
+            Search folders, view ingestion status, and run subtitle extraction when ready.
+          </p>
+        </div>
+        <div class="media-admin__controls">
+          <label class="search media-admin__search">
+            <span>Search</span>
+            <input
+              type="search"
+              id="media-search"
+              placeholder="Search source name..."
+              autocomplete="off"
+            />
+          </label>
+          <button id="refresh-media" type="button" class="ghost-btn">Refresh</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="media-table">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Status</th>
+              <th scope="col">Subtitles</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="media-table-body"></tbody>
+        </table>
+      </div>
+
+      <p id="media-status" role="status" class="media-status"></p>
+    </section>
+
+    <div class="modal" id="raw-subtitles-modal" hidden>
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-content subtitles-content">
+        <button class="modal-close" data-close>&times;</button>
+        <pre id="raw-subtitles-text"></pre>
+      </div>
+    </div>
+
+    <script src="media-admin.js" type="module"></script>
+  </body>
+</html>

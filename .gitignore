@@ -1,0 +1,7 @@
+clips
+src_media
+node_modules
+dist
+.DS_Store
+.env
+*.sqlite

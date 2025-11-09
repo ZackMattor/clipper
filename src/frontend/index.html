@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clip Extractor Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Clip Extractor</h1>
+      <p>Create new clip searches and browse everything already generated.</p>
+    </header>
+
+    <section class="panel random-carousel">
+      <div class="random-header">
+        <div>
+          <h2>Random Clip Carousel</h2>
+          <p class="clips-subtitle">
+            Sit back and let the dashboard cycle through every clip automatically.
+          </p>
+        </div>
+        <div class="random-controls">
+          <p id="random-status" class="random-status" role="status">Idle</p>
+        </div>
+      </div>
+      <div class="random-filter">
+        <p class="random-filter-label">Search terms</p>
+        <div id="random-query-filters" class="random-filter-list"></div>
+      </div>
+      <div class="random-start">
+        <button id="random-toggle" type="button" class="ghost-btn">Start</button>
+      </div>
+      <div class="random-video-wrapper">
+        <video
+          id="random-clip-video"
+          class="random-video"
+          controls
+          muted
+          playsinline
+          preload="metadata"
+        >
+          <source src="" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+      <div class="random-meta">
+        <div>
+          <p id="random-clip-title" class="random-title">No clip loaded yet.</p>
+          <p id="random-clip-run" class="random-run"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>New Extraction</h2>
+      <form id="extract-form">
+        <label>
+          Query
+          <input type="text" name="query" required placeholder="e.g. dino" />
+        </label>
+        <label>
+          Buffer (ms)
+          <input type="number" name="bufferMs" min="0" value="2000" />
+        </label>
+        <input type="hidden" name="mode" value="clean-transcode" />
+        <input type="hidden" name="container" value="mp4" />
+        <div class="source-picker">
+          <div class="source-header">
+            <div class="source-header-text">
+              <strong>Sources</strong>
+              <span>Select one or more movies (default: all)</span>
+            </div>
+            <label class="search source-search">
+              <span>Search</span>
+              <input type="search" id="media-search" placeholder="Filter movies..." />
+            </label>
+          </div>
+          <div id="media-list" class="media-list"></div>
+        </div>
+        <button type="submit">Start Extraction</button>
+        <p id="form-status" role="status"></p>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="clips-header">
+        <div>
+          <h2>Clips</h2>
+          <p class="clips-subtitle">Click a cover to watch, or download clips directly.</p>
+        </div>
+        <div class="clips-controls">
+          <label class="search">
+            <span>Filter</span>
+            <input type="search" id="filter-input" placeholder="Search query / run / file..." />
+          </label>
+          <select id="sort-select">
+            <option value="generated_at">Newest</option>
+            <option value="clip.start">Start Time</option>
+            <option value="clip.processing_ms">Encode Time</option>
+          </select>
+        </div>
+      </div>
+      <div id="clips-list" class="clips-list"></div>
+    </section>
+
+    <div class="modal" id="player-modal" hidden>
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-content">
+        <button class="modal-close" data-close>&times;</button>
+        <video id="modal-video" controls preload="metadata" poster="">
+          <source src="" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+
+    <div class="modal" id="subtitles-modal" hidden>
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-content subtitles-content">
+        <button class="modal-close" data-close>&times;</button>
+        <pre id="subtitles-text"></pre>
+      </div>
+    </div>
+
+    <script src="main.js" type="module"></script>
+  </body>
+</html>
