@@ -98,6 +98,16 @@ Key flags:
 - `--ffmpeg-stats`: forward `-stats` to ffmpeg so you can watch per-clip progress/status output in real time (handy for long `--accurate` runs).
 - `--ffmpeg-verbose`: raise ffmpeg’s log level to `info` so you can tail detailed progress output in the API/CLI console.
 
+### Importing legacy clips
+
+If you generated clips before they were stored in SQLite, use the helper script to ingest existing `metadata.yaml` files:
+
+```bash
+npm run clips:import
+```
+
+The script scans the `clips/` directory (or `CLIPS_OUTPUT_ROOT`), parses each metadata file, copies the clip + cover assets into `data/` using randomized filenames, and saves any missing clip records into the `clips` table—skipping entries that already exist.
+
 Each invocation creates a timestamped subdirectory inside `clips/` (for example `clips/dino_2024-05-04T17-33-02-123Z/`). Inside that run directory you’ll find a `vids/` folder containing all of the extracted clips (the filenames still encode the source movie) **and** a `metadata.yaml` file that captures how those clips were produced.
 
 While running, the CLI emits benchmarking info: every clip log now includes the time `ffmpeg` spent on that item, and the end-of-run summary prints the total wall-clock time plus the average processing time per clip. Use those numbers to understand how much the `--accurate` mode costs versus the default fast stream copy.
@@ -140,6 +150,13 @@ Use the metadata to trace which query, buffer, mode, container, hardware acceler
 Copy `.env.example` to `.env` and adjust as needed. Supported vars:
 
 - `MEDIA_ROOT`: overrides the default `src_media` input directory.
+- `CLIPS_OUTPUT_ROOT`: change where run directories + metadata live (defaults to `clips/`).
+- `DATA_PATH`: root directory for imported clip/cover assets (defaults to `data/`). This folder is served statically at `/data/...` so the UI and API responses can reference files there directly.
 - `SQLITE_PATH`: optional override for the SQLite database file (defaults to `subreaderdelux.sqlite` inside the repo).
 - `OPENAI_API_KEY`: enables auto-summarization of clips.
 - `OPENAI_MODEL`: optional model override (defaults to `gpt-4o-mini`).
+Need to wipe the clip table (and the `data/` assets) during development? Run:
+
+```bash
+npm run clips:sql_clear
+```

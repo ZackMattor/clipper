@@ -5,6 +5,7 @@ import { ExtractClipsDto } from './dto/extract-clips.dto';
 import { MetadataIndexService } from './metadata-index.service';
 import { MediaService } from './media.service';
 import { SubtitleService } from './subtitle.service';
+import { ClipService } from './clip.service';
 
 @Injectable()
 export class ExtractionService {
@@ -12,7 +13,8 @@ export class ExtractionService {
   constructor(
     private readonly metadataIndex: MetadataIndexService,
     private readonly mediaService: MediaService,
-    private readonly subtitleService: SubtitleService
+    private readonly subtitleService: SubtitleService,
+    private readonly clipService: ClipService
   ) {}
 
   async extract(dto: ExtractClipsDto): Promise<{ runs: ClipRunMetadata[] }> {
@@ -36,6 +38,7 @@ export class ExtractionService {
         `Completed extraction: ${metadata.total_clips} clip(s) saved to ${metadata.run_directory}`
       );
       this.metadataIndex.addRun(metadata);
+      await this.clipService.recordRun(metadata, dto.query);
       runs.push(metadata);
     }
     return { runs };

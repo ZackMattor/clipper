@@ -1,5 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Subtitle } from './subtitle.entity';
+import { Clip } from './clip.entity';
 
 export enum SrcMediaStatus {
   PENDING = 'pending',
@@ -21,4 +22,7 @@ export class SrcMedia {
 
   @OneToMany(() => Subtitle, (subtitle) => subtitle.media)
   subtitles?: Subtitle[];
+
+  @OneToMany(() => Clip, (clip) => clip.media)
+  clips?: Clip[];
 }
