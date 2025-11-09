@@ -30,6 +30,9 @@ export class Clip {
   @Column({ name: 'search_term' })
   searchTerm!: string;
 
+  @Column({ name: 'summary', type: 'text', nullable: true })
+  summary?: string | null;
+
   @Column({ name: 'subtitle_context', type: 'text', nullable: true })
   subtitleContext?: string | null;
 

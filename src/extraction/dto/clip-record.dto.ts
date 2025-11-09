@@ -22,6 +22,9 @@ export class ClipRecordDto {
   @ApiProperty({ required: false, description: 'Subtitle context lines' })
   subtitleContext?: string;
 
+  @ApiProperty({ required: false, description: 'Clip summary' })
+  summary?: string;
+
   @ApiProperty({ required: false, description: 'Relative cover image path' })
   coverFilePath?: string | null;
 

@@ -106,6 +106,7 @@ async function main(): Promise<void> {
           startTimestampMs,
           endTimestampMs,
           searchTerm: metadata.query,
+          summary: clip.summary ?? null,
           subtitleContext: clip.summary_context?.join('\n') ?? null,
           coverFilePath: storedCoverPath,
           clipFilePath: storedClipPath,

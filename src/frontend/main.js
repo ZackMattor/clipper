@@ -1,6 +1,4 @@
 const API_BASE = '/api';
-const CLIPS_BASE = '/clips';
-
 const modal = document.querySelector('#player-modal');
 const modalVideo = document.querySelector('#modal-video');
 const subtitlesModal = document.querySelector('#subtitles-modal');
@@ -25,7 +23,7 @@ const mediaSelectionHint = document.querySelector('#media-selection-hint');
 let clips = [];
 let mediaSources = [];
 let filtered = [];
-let sortKey = 'generated_at';
+let sortKey = 'createdAt';
 let sortAsc = false;
 let mediaFilterQuery = '';
 const selectedMedia = new Set();
@@ -36,11 +34,16 @@ let randomSelectedQueries = new Set();
 const MAX_BUFFER_MS = 30000;
 
 async function fetchClips() {
-  const response = await fetch(`${API_BASE}/clips`);
+  const response = await fetch(`${API_BASE}/db/clips`);
   if (!response.ok) {
     throw new Error(`Failed to load clips (${response.status})`);
   }
-  clips = await response.json();
+  const data = await response.json();
+  clips = data.map((entry) => ({
+    ...entry,
+    startSeconds: entry.startTimestampMs / 1000,
+    endSeconds: entry.endTimestampMs / 1000
+  }));
   renderRandomFilters();
   applyFilterAndSort();
   refreshRandomCarousel();
@@ -50,21 +53,13 @@ function applyFilterAndSort() {
   const query = filterInput.value.trim().toLowerCase();
   filtered = clips.filter((entry) => {
     if (!query) return true;
-    const haystack =
-      `${entry.query} ${entry.run_directory} ${entry.clip.file}`.toLowerCase();
+    const haystack = `${entry.searchTerm} ${entry.mediaName} ${entry.summary ?? ''} ${entry.subtitleContext ?? ''}`.toLowerCase();
     return haystack.includes(query);
   });
 
-  const getValue = (entry, key) => {
-    if (key.startsWith('clip.')) {
-      return entry.clip[key.replace('clip.', '')];
-    }
-    return entry[key];
-  };
-
   filtered.sort((a, b) => {
-    const aVal = getValue(a, sortKey);
-    const bVal = getValue(b, sortKey);
+    const aVal = a[sortKey];
+    const bVal = b[sortKey];
     if (aVal === bVal) return 0;
     if (aVal === undefined) return 1;
     if (bVal === undefined) return -1;
@@ -87,10 +82,10 @@ function renderTable() {
 
     const coverDiv = document.createElement('div');
     coverDiv.className = 'clip-cover';
-    if (entry.clip.cover_image) {
+    if (entry.coverFilePath) {
       const img = document.createElement('img');
-      img.src = `${CLIPS_BASE}/${entry.run_directory}/${entry.clip.cover_image}`;
-      img.alt = `Cover for ${entry.clip.file}`;
+      img.src = entry.coverFilePath;
+      img.alt = `Cover for ${entry.mediaName}`;
       img.addEventListener('click', () => openPlayer(entry));
       coverDiv.appendChild(img);
     } else {
@@ -104,33 +99,39 @@ function renderTable() {
     details.className = 'clip-details';
 
     const heading = document.createElement('div');
-    heading.innerHTML = `<strong>${entry.query}</strong> · <span>${entry.run_directory}</span>`;
+    heading.innerHTML = `<strong>${entry.searchTerm}</strong> · <span>${entry.mediaName}</span>`;
     details.appendChild(heading);
 
     const summary = document.createElement('div');
     summary.className = 'clip-summary';
-    summary.textContent = entry.clip.summary || 'No summary available.';
+    if (entry.summary) {
+      summary.textContent = entry.summary;
+    } else if (entry.subtitleContext) {
+      summary.textContent = entry.subtitleContext;
+    } else {
+      summary.textContent = 'Summary unavailable for this clip.';
+    }
     details.appendChild(summary);
 
     const meta = document.createElement('div');
     meta.className = 'clip-meta';
     meta.innerHTML = `
-      <div>${new Date(entry.generated_at).toLocaleString()}</div>
-      <div>File: ${entry.clip.file}</div>
-      <div>Range: ${entry.clip.start.toFixed(2)}s – ${entry.clip.end.toFixed(2)}s</div>
-      <div>Encode: ${entry.clip.processing_ms ?? 0} ms</div>
+      <div>${new Date(entry.createdAt).toLocaleString()}</div>
+      <div>Range: ${entry.startSeconds.toFixed(2)}s – ${entry.endSeconds.toFixed(2)}s</div>
+      <div>Encode: ${entry.encodeDurationMs ?? 0} ms</div>
     `;
     details.appendChild(meta);
 
-    if (entry.clip.summary_context?.length) {
+    if (entry.subtitleContext) {
       const contextWrapper = document.createElement('div');
       contextWrapper.className = 'clip-context';
       const toggleBtn = document.createElement('button');
       toggleBtn.type = 'button';
       toggleBtn.textContent = 'View context';
       const pre = document.createElement('pre');
-      pre.innerHTML = entry.clip.summary_context
-        .map((line) => highlightMatchSafe(line, entry.query))
+      pre.innerHTML = entry.subtitleContext
+        .split('\n')
+        .map((line) => highlightMatchSafe(line, entry.searchTerm))
         .join('\n');
       pre.hidden = true;
       toggleBtn.addEventListener('click', () => {
@@ -145,15 +146,15 @@ function renderTable() {
     const links = document.createElement('div');
     links.className = 'clip-links';
     const clipLink = document.createElement('a');
-    clipLink.href = `${CLIPS_BASE}/${entry.run_directory}/${entry.clip.file}`;
+    clipLink.href = entry.clipFilePath;
     clipLink.target = '_blank';
     clipLink.rel = 'noopener noreferrer';
     clipLink.textContent = 'Download';
     links.appendChild(clipLink);
 
-    if (entry.clip.cover_image) {
+    if (entry.coverFilePath) {
       const coverLink = document.createElement('a');
-      coverLink.href = `${CLIPS_BASE}/${entry.run_directory}/${entry.clip.cover_image}`;
+      coverLink.href = entry.coverFilePath;
       coverLink.target = '_blank';
       coverLink.rel = 'noopener noreferrer';
       coverLink.textContent = 'Cover';
@@ -169,10 +170,8 @@ function renderTable() {
 }
 
 function openPlayer(entry) {
-  const videoUrl = `${CLIPS_BASE}/${entry.run_directory}/${entry.clip.file}`;
-  const posterUrl = entry.clip.cover_image
-    ? `${CLIPS_BASE}/${entry.run_directory}/${entry.clip.cover_image}`
-    : '';
+  const videoUrl = entry.clipFilePath;
+  const posterUrl = entry.coverFilePath ?? '';
   modalVideo.pause();
   modalVideo.src = videoUrl;
   modalVideo.poster = posterUrl;
@@ -519,11 +518,9 @@ function playNextRandomClip(force = false) {
   }
   currentRandomClip = randomQueue.shift();
   updateRandomMeta(currentRandomClip);
-  const videoUrl = `${CLIPS_BASE}/${currentRandomClip.run_directory}/${currentRandomClip.clip.file}`;
+  const videoUrl = currentRandomClip.clipFilePath;
   randomVideo.src = videoUrl;
-  randomVideo.poster = currentRandomClip.clip.cover_image
-    ? `${CLIPS_BASE}/${currentRandomClip.run_directory}/${currentRandomClip.clip.cover_image}`
-    : '';
+  randomVideo.poster = currentRandomClip.coverFilePath ?? '';
   randomVideo.load();
   randomVideo
     .play()
@@ -543,10 +540,8 @@ function updateRandomMeta(entry = currentRandomClip) {
     randomRunEl.textContent = '';
     return;
   }
-  randomTitleEl.textContent = `${entry.query} · ${entry.clip.file}`;
-  randomRunEl.textContent = `Run: ${entry.run_directory} | ${entry.clip.start.toFixed(
-    2
-  )}s → ${entry.clip.end.toFixed(2)}s`;
+  randomTitleEl.textContent = `${entry.searchTerm} · ${entry.mediaName}`;
+  randomRunEl.textContent = `${entry.startSeconds.toFixed(2)}s → ${entry.endSeconds.toFixed(2)}s`;
 }
 
 function updateRandomStatus(message) {
@@ -585,7 +580,7 @@ function renderRandomFilters() {
   if (!randomQueryFiltersEl) {
     return;
   }
-  const uniqueQueries = Array.from(new Set(clips.map((clip) => clip.query))).sort((a, b) =>
+  const uniqueQueries = Array.from(new Set(clips.map((clip) => clip.searchTerm))).sort((a, b) =>
     a.localeCompare(b)
   );
   randomQueryFiltersEl.innerHTML = '';
@@ -634,5 +629,5 @@ function getRandomClipPool() {
   if (!randomSelectedQueries.size) {
     return [];
   }
-  return clips.filter((clip) => randomSelectedQueries.has(clip.query));
+  return clips.filter((clip) => randomSelectedQueries.has(clip.searchTerm));
 }
