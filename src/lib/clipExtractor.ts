@@ -156,7 +156,6 @@ export class ClipExtractor {
     }
 
     const metadata = this.buildMetadata();
-    await this.writeMetadata(metadata);
     const jobDuration = performance.now() - jobStart;
     const averageClipMs =
       !this.dryRun && this.metadataEntries.length
@@ -164,10 +163,9 @@ export class ClipExtractor {
         : 0;
 
     console.log(
-      `Done. Created ${processed} clip(s) in ${formatDuration(jobDuration)}. Metadata saved to ${path.join(
-        this.runRoot,
-        'metadata.yaml'
-      )}`
+      `Done. Created ${processed} clip(s) in ${formatDuration(
+        jobDuration
+      )}. Clips written under ${this.runRoot}`
     );
     if (averageClipMs) {
       console.log(`Average ffmpeg time per clip: ${formatDuration(averageClipMs)}`);
@@ -284,11 +282,6 @@ export class ClipExtractor {
       run_directory: path.relative(this.outputRoot, this.runRoot) || '.',
       clips: this.metadataEntries
     };
-  }
-
-  private async writeMetadata(metadata: ClipRunMetadata): Promise<void> {
-    const metadataPath = path.join(this.runRoot, 'metadata.yaml');
-    await fs.writeFile(metadataPath, serializeMetadata(metadata), 'utf8');
   }
 
   private async collectSubtitleFiles(): Promise<string[]> {
@@ -953,51 +946,6 @@ function cloneRegex(regex: RegExp): RegExp {
 
 function roundNumber(value: number): number {
   return Math.round(value * 1000) / 1000;
-}
-
-function serializeMetadata(metadata: ClipRunMetadata): string {
-  const lines: string[] = [];
-  lines.push(`schema: ${metadata.schema}`);
-  lines.push(`query: ${yamlString(metadata.query)}`);
-  lines.push(`buffer_ms: ${metadata.buffer_ms}`);
-  lines.push(`generated_at: ${yamlString(metadata.generated_at)}`);
-  lines.push(`ffmpeg_path: ${yamlString(metadata.ffmpeg_path)}`);
-  lines.push(`mode: ${metadata.mode}`);
-  lines.push(`container: ${metadata.container}`);
-  if (metadata.hw_accel) {
-    lines.push(`hw_accel: ${metadata.hw_accel}`);
-  }
-  lines.push(`run_directory: ${yamlString(metadata.run_directory)}`);
-  lines.push(`total_clips: ${metadata.total_clips}`);
-  lines.push('clips:');
-  metadata.clips.forEach((clip) => {
-    lines.push('  - file: ' + yamlString(clip.file));
-    lines.push('    video: ' + yamlString(clip.video));
-    lines.push('    subtitle: ' + yamlString(clip.subtitle));
-    lines.push('    start: ' + clip.start);
-    lines.push('    end: ' + clip.end);
-    lines.push('    processing_ms: ' + clip.processing_ms);
-    if (clip.cover_image) {
-      lines.push('    cover_image: ' + yamlString(clip.cover_image));
-    }
-    if (clip.summary) {
-      lines.push('    summary: ' + yamlString(clip.summary));
-    }
-    if (clip.summary_context?.length) {
-      lines.push('    summary_context:');
-      clip.summary_context.forEach((line) => {
-        lines.push('      - ' + yamlString(line));
-      });
-    }
-  });
-  return lines.join('\n') + '\n';
-}
-
-function yamlString(value: string): string {
-  if (/^[A-Za-z0-9_./-]+$/.test(value)) {
-    return value;
-  }
-  return JSON.stringify(value);
 }
 
 type RequiredClipOptions = {

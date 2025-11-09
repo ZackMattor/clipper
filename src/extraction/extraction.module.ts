@@ -11,11 +11,19 @@ import { MediaController } from './media.controller';
 import { SubtitleService } from './subtitle.service';
 import { SrcMediaController } from './src-media.controller';
 import { ClipService } from './clip.service';
+import { ClipExportService } from './clip-export.service';
 import { ClipController } from './clip.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([SrcMedia, Subtitle, Clip])],
   controllers: [ExtractionController, MediaController, SrcMediaController, ClipController],
-  providers: [ExtractionService, MetadataIndexService, MediaService, SubtitleService, ClipService]
+  providers: [
+    ExtractionService,
+    MetadataIndexService,
+    MediaService,
+    SubtitleService,
+    ClipService,
+    ClipExportService
+  ]
 })
 export class ExtractionModule {}
