@@ -18,6 +18,8 @@ const randomRunEl = document.querySelector('#random-clip-run');
 const randomToggleBtn = document.querySelector('#random-toggle');
 const randomStatusEl = document.querySelector('#random-status');
 const randomQueryFiltersEl = document.querySelector('#random-query-filters');
+const submitButton = form ? form.querySelector('button[type="submit"]') : null;
+const mediaSelectionHint = document.querySelector('#media-selection-hint');
 
 let clips = [];
 let mediaSources = [];
@@ -223,6 +225,12 @@ sortSelect.addEventListener('change', () => {
 
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
+  const selectedSources = getSelectedSources();
+  if (!selectedSources.length) {
+    statusEl.textContent = 'Select at least one source before starting.';
+    updateSourceSelectionState();
+    return;
+  }
   statusEl.textContent = 'Submitting...';
   const formData = new FormData(form);
   const payload = {
@@ -231,10 +239,7 @@ form.addEventListener('submit', async (event) => {
     mode: 'clean-transcode',
     container: 'mp4'
   };
-  const selectedSources = getSelectedSources();
-  if (selectedSources.length) {
-    payload.srcMedias = selectedSources;
-  }
+  payload.srcMedias = selectedSources;
 
   try {
     const response = await fetch(`${API_BASE}/clips`, {
@@ -256,6 +261,7 @@ form.addEventListener('submit', async (event) => {
 form.addEventListener('reset', () => {
   selectedMedia.clear();
   renderMediaList();
+  updateSourceSelectionState();
 });
 
 fetchClips().catch((error) => {
@@ -275,6 +281,7 @@ async function fetchMedia() {
     }
   });
   renderMediaList();
+  updateSourceSelectionState();
 }
 
 function renderMediaList() {
@@ -291,6 +298,7 @@ function renderMediaList() {
       ? 'No media match this search.'
       : 'No media folders found.';
     mediaListEl.appendChild(empty);
+    updateSourceSelectionState();
     return;
   }
   matches.forEach((entry) => {
@@ -305,10 +313,9 @@ function renderMediaList() {
       } else {
         selectedMedia.delete(entry.id);
       }
+      updateSourceSelectionState();
     });
     label.appendChild(input);
-    const text = document.createElement('span');
-    text.textContent = entry.name;
     const subtitleBtn = document.createElement('button');
     subtitleBtn.type = 'button';
     subtitleBtn.textContent = 'View subtitles';
@@ -318,10 +325,13 @@ function renderMediaList() {
       event.stopPropagation();
       await showSubtitles(entry.id);
     });
-    label.appendChild(subtitleBtn);
+    const text = document.createElement('span');
+    text.textContent = entry.name;
     label.appendChild(text);
+    label.appendChild(subtitleBtn);
     mediaListEl.appendChild(label);
   });
+  updateSourceSelectionState();
 }
 
 function getSelectedSources() {
@@ -332,6 +342,7 @@ fetchMedia().catch((error) => {
 });
 
 initRandomCarousel();
+updateSourceSelectionState();
 function escapeHtml(text) {
   return text.replace(/[&<>"']/g, (char) => {
     const map = {
@@ -400,6 +411,7 @@ function initRandomCarousel() {
   if (!randomVideo) {
     return;
   }
+  randomVideo.muted = false;
   randomToggleBtn?.addEventListener('click', () => {
     if (randomPlaying) {
       pauseRandomCarousel();
@@ -521,6 +533,24 @@ function updateRandomMeta(entry = currentRandomClip) {
 function updateRandomStatus(message) {
   if (randomStatusEl) {
     randomStatusEl.textContent = message;
+  }
+}
+
+function updateSourceSelectionState() {
+  const hasSelection = selectedMedia.size > 0;
+  if (submitButton) {
+    submitButton.disabled = !hasSelection;
+  }
+  if (mediaSelectionHint) {
+    if (hasSelection) {
+      mediaSelectionHint.textContent = `${selectedMedia.size} source${
+        selectedMedia.size === 1 ? '' : 's'
+      } selected`;
+      mediaSelectionHint.classList.remove('invalid');
+    } else {
+      mediaSelectionHint.textContent = 'Select at least one source to enable extraction';
+      mediaSelectionHint.classList.add('invalid');
+    }
   }
 }
 

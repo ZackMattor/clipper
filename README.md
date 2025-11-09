@@ -43,7 +43,8 @@ curl -X POST http://localhost:3000/api/clips \
     "mode": "accurate-transcode",
     "container": "mp4",
     "hwAccel": "videotoolbox",
-    "bufferMs": 400
+    "bufferMs": 400,
+    "srcMedias": [1]
   }'
 ```
 
@@ -55,7 +56,7 @@ Need to target specific movies? Call `GET /api/media` to list every registered s
 
 Need the exact video path? Call `GET /api/media/{id}/url` to resolve the relative path to the primary video on demand (the server only scans a folder when you ask for its URL).
 
-Need to inspect the subtitles first? `GET /api/media/{id}/subtitles` returns structured subtitle entries (start/end timestamps in milliseconds plus text) sourced from the subtitle cache, and automatically demuxes an English track if needed.
+Need to inspect the subtitles first? `GET /api/media/{id}/subtitles` returns structured subtitle entries (start/end timestamps in milliseconds plus text) sourced directly from the managed subtitle entity, and automatically demuxes an English track if needed.
 
 If a movie only has an `.mkv` file with embedded subtitles, the extractor automatically demuxes the first subtitle track (preferring English text-based streams) into a companion `*.auto.srt` before running, so you don’t have to manage external `.srt` files manually. Image-based codecs (e.g., PGS) are skipped because they can’t be converted to SRT without OCR. Each source is identified by its folder name (e.g., `Jurassic Park 1 (1993)`), and the system always prefers subtitles derived from the container and tagged as English when multiple options exist.***
 ```json
@@ -77,7 +78,7 @@ A lightweight dashboard is bundled at `http://localhost:3000/`. It offers:
 
 - A form for kicking off new extractions (subset of the CLI/API flags).
 - A sortable, filterable gallery of every clip, complete with cover thumbnails, summaries, and direct download links (powered by `GET /api/clips`).
-- A per-folder source picker (default: all) mirrors the `srcMedias` option, so you can kick off runs for specific movies without constructing API calls by hand.
+- A per-folder source picker (selection required) mirrors the `srcMedias` option, so you can kick off runs for specific movies without constructing API calls by hand.
 - Cover and video links point to the static `/clips/...` assets, so you can preview or share results without touching the filesystem.
 
 API-triggered runs default to verbose ffmpeg logging (`ffmpegVerbose=true`, `ffmpegStats=true`) so you’ll see detailed status lines in the Nest console while jobs are running.

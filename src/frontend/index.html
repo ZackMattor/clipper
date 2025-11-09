@@ -36,7 +36,6 @@
           id="random-clip-video"
           class="random-video"
           controls
-          muted
           playsinline
           preload="metadata"
         >
@@ -66,11 +65,14 @@
         <input type="hidden" name="mode" value="clean-transcode" />
         <input type="hidden" name="container" value="mp4" />
         <div class="source-picker">
-          <div class="source-header">
-            <div class="source-header-text">
-              <strong>Sources</strong>
-              <span>Select one or more movies (default: all)</span>
-            </div>
+        <div class="source-header">
+          <div class="source-header-text">
+            <strong>Sources</strong>
+            <span>Select one or more movies</span>
+            <span id="media-selection-hint" class="media-selection-hint">
+              Select at least one source to enable extraction
+            </span>
+          </div>
             <label class="search source-search">
               <span>Search</span>
               <input type="search" id="media-search" placeholder="Filter movies..." />

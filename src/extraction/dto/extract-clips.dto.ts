@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsBoolean, IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
 import {
   ClipMode,
   ContainerFormat,
@@ -95,14 +95,15 @@ export class ExtractClipsDto {
   @IsBoolean()
   ffmpegVerbose?: boolean;
 
-  @ApiPropertyOptional({
-    description: 'Restrict processing to these SrcMedia IDs',
+  @ApiProperty({
+    description: 'SrcMedia IDs to process',
     type: [Number]
   })
-  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
   @Type(() => Number)
   @IsInt({ each: true })
-  srcMedias?: number[];
+  srcMedias!: number[];
 
   @ApiPropertyOptional({
     description: 'Extraction mode',

@@ -590,6 +590,15 @@ button[type='submit']:hover {
   color: #111;
 }
 
+.media-selection-hint {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.media-selection-hint.invalid {
+  color: #b91c1c;
+}
+
 .source-search {
   flex-direction: column;
   align-items: flex-start;
@@ -615,6 +624,13 @@ button[type='submit']:hover {
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.5rem;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.media-list label:hover {
+  background: rgba(37, 99, 235, 0.08);
 }
 
 .media-list input {

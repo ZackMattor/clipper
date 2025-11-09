@@ -16,7 +16,7 @@ export class ExtractionService {
   ) {}
 
   async extract(dto: ExtractClipsDto): Promise<{ runs: ClipRunMetadata[] }> {
-    const targets = dto.srcMedias && dto.srcMedias.length ? dto.srcMedias : [undefined];
+    const targets = dto.srcMedias;
     const runs: ClipRunMetadata[] = [];
     for (const target of targets) {
       const resolution = await this.resolveMediaSelection(target);
@@ -29,7 +29,7 @@ export class ExtractionService {
         ...dto,
         subtitleFiles: subtitleFilter,
         subtitleVideoMap: subtitleMap,
-        ffmpegVerbose: dto.ffmpegVerbose ?? true,
+        ffmpegVerbose: dto.ffmpegVerbose ?? false,
         ffmpegStats: dto.ffmpegStats ?? true
       });
       this.logger.log(
@@ -42,11 +42,8 @@ export class ExtractionService {
   }
 
   private async resolveMediaSelection(
-    selection?: number
+    selection: number
   ): Promise<{ subtitles: string[]; map: Record<string, string> } | undefined> {
-    if (!selection) {
-      return undefined;
-    }
     const media = await this.mediaService.getMediaById(selection);
     if (!media) {
       this.logger.warn(`Unknown media selection: ${selection}`);
