@@ -88,7 +88,7 @@ Key flags:
 - `--query` (required): substring or regular expression to look for in the subtitles.
 - `--media-root`: top-level directory that contains the movie folders (default: `src_media`).
 - `--output-root`: parent directory for generated runs+metadata (default: `clips/`).
-- `--buffer-ms`: milliseconds of context to keep on either side of each detected match (default: 300 ms).
+- `--buffer-ms`: milliseconds of context to keep on either side of each detected match (default: 300 ms, max: 30 000 ms / 30 s).
 - `--dry-run`: scan and print matches without invoking `ffmpeg`.
 - `--limit`: stop after creating *n* clips.
 - `--accurate`: re-encode each clip (`libx264`/`aac`) so the output duration matches the reported start/stop times exactly (performs a post-input seek).

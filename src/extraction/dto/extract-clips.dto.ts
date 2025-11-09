@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { ArrayNotEmpty, IsArray, IsBoolean, IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsBoolean, IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 import {
   ClipMode,
   ContainerFormat,
@@ -51,6 +51,7 @@ export class ExtractClipsDto {
   @Type(() => Number)
   @IsInt()
   @Min(0)
+  @Max(30000)
   bufferMs?: number;
 
   @ApiPropertyOptional({

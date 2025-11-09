@@ -12,6 +12,7 @@ const form = document.querySelector('#extract-form');
 const sortSelect = document.querySelector('#sort-select');
 const mediaListEl = document.querySelector('#media-list');
 const mediaSearchInput = document.querySelector('#media-search');
+const bufferInput = document.querySelector('input[name="bufferMs"]');
 const randomVideo = document.querySelector('#random-clip-video');
 const randomTitleEl = document.querySelector('#random-clip-title');
 const randomRunEl = document.querySelector('#random-clip-run');
@@ -32,6 +33,7 @@ let randomQueue = [];
 let randomPlaying = false;
 let currentRandomClip = null;
 let randomSelectedQueries = new Set();
+const MAX_BUFFER_MS = 30000;
 
 async function fetchClips() {
   const response = await fetch(`${API_BASE}/clips`);
@@ -223,6 +225,18 @@ sortSelect.addEventListener('change', () => {
   applyFilterAndSort();
 });
 
+bufferInput?.addEventListener('input', () => {
+  let value = Number(bufferInput.value);
+  if (Number.isNaN(value) || value < 0) {
+    value = 0;
+  }
+  if (value > MAX_BUFFER_MS) {
+    value = MAX_BUFFER_MS;
+    statusEl.textContent = 'Buffer capped at 30000 ms (30 seconds).';
+  }
+  bufferInput.value = String(value);
+});
+
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
   const selectedSources = getSelectedSources();
@@ -233,9 +247,14 @@ form.addEventListener('submit', async (event) => {
   }
   statusEl.textContent = 'Submitting...';
   const formData = new FormData(form);
+  const rawBuffer = Number(formData.get('bufferMs')) || 0;
+  const bufferMs = Math.min(Math.max(rawBuffer, 0), MAX_BUFFER_MS);
+  if (bufferInput) {
+    bufferInput.value = String(bufferMs);
+  }
   const payload = {
     query: formData.get('query'),
-    bufferMs: Number(formData.get('bufferMs')) || 0,
+    bufferMs,
     mode: 'clean-transcode',
     container: 'mp4'
   };
