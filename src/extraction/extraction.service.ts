@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import path from 'path';
-import { ClipRunMetadata } from '../lib/clipExtractor';
+import { ClipRunMetadata } from './clip-export.service';
 import { ExtractClipsDto } from './dto/extract-clips.dto';
 import { MetadataIndexService } from './metadata-index.service';
 import { ClipExportService } from './clip-export.service';
@@ -34,7 +34,6 @@ export class ExtractionService {
         ffmpegVerbose: dto.ffmpegVerbose ?? false,
         mode: dto.mode,
         container: dto.container,
-        hwAccel: dto.hwAccel,
         mediaRoot,
         outputRoot
       });

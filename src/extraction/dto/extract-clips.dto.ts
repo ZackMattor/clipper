@@ -1,13 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { ArrayNotEmpty, IsArray, IsBoolean, IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
-import {
-  ClipMode,
-  ContainerFormat,
-  HardwareAccel,
-  ClipMetadataEntry,
-  ClipRunMetadata
-} from '../../lib/clipExtractor';
+import { ClipMode, ContainerFormat, ClipMetadataEntry, ClipRunMetadata } from '../clip-export.service';
 import { SrcMediaStatus } from '../../database/entities/src-media.entity';
 
 export class ExtractClipsDto {
@@ -123,14 +117,6 @@ export class ExtractClipsDto {
   @IsOptional()
   @IsEnum(['mkv', 'mp4'])
   container?: ContainerFormat;
-
-  @ApiPropertyOptional({
-    description: 'Hardware acceleration backend',
-    enum: ['videotoolbox']
-  })
-  @IsOptional()
-  @IsEnum(['videotoolbox'])
-  hwAccel?: HardwareAccel;
 }
 
 export class ClipMetadataEntryDto implements ClipMetadataEntry {
@@ -190,9 +176,6 @@ export class ClipRunMetadataDto implements ClipRunMetadata {
   @ApiProperty({ enum: ['mkv', 'mp4'] })
   container!: ContainerFormat;
 
-  @ApiProperty({ enum: ['videotoolbox'], required: false })
-  hw_accel?: HardwareAccel;
-
   @ApiProperty({ description: 'Number of clips generated' })
   total_clips!: number;
 
@@ -224,9 +207,6 @@ export class ClipIndexEntryDto {
 
   @ApiProperty({ enum: ['mkv', 'mp4'] })
   container!: ContainerFormat;
-
-  @ApiPropertyOptional({ enum: ['videotoolbox'] })
-  hw_accel?: HardwareAccel;
 
   @ApiProperty({ description: 'Clip metadata' })
   clip!: ClipMetadataEntryDto;

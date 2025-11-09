@@ -1,6 +1,6 @@
 ## Clip Extractor
 
-TypeScript CLI for carving dialogue clips out of the videos stored under `src_media/`. The workflow relies on `.srt` subtitle files to locate a keyword/regex, linearly interpolates to isolate the smallest possible spoken window for each hit, then copies that window (plus a configurable buffer) with `ffmpeg`.
+TypeScript/Nest service for carving dialogue clips out of the videos stored under `src_media/`. The workflow relies on `.srt` subtitle files to locate a keyword/regex, linearly interpolates to isolate the smallest possible spoken window for each hit, then copies that window (plus a configurable buffer) with `ffmpeg`.
 
 ### Prerequisites
 
@@ -13,18 +13,6 @@ TypeScript CLI for carving dialogue clips out of the videos stored under `src_me
 npm install
 ```
 
-### Usage
-
-```bash
-npm run extract-clips -- \
-  --query "dino" \
-  --media-root src_media \
-  --output-root clips \
-  --buffer-ms 400
-```
-
-Append `--container mp4 --accurate --videotoolbox` if you want hardware-accelerated H.264/AAC `.mp4` clips with frame-accurate trimming on Apple Silicon (M-series) hardware.
-
 ### REST API
 
 Spin up the NestJS backend (Swagger docs live at `/docs`):
@@ -33,7 +21,7 @@ Spin up the NestJS backend (Swagger docs live at `/docs`):
 npm run start:dev
 ```
 
-Then POST to `/clips` with the same options the CLI accepts:
+Then POST to `/clips` with the desired extraction options:
 
 ```bash
 curl -X POST http://localhost:3000/api/clips \
@@ -42,7 +30,6 @@ curl -X POST http://localhost:3000/api/clips \
     "query": "dino",
     "mode": "accurate-transcode",
     "container": "mp4",
-    "hwAccel": "videotoolbox",
     "bufferMs": 400,
     "srcMedias": [1]
   }'
@@ -76,7 +63,7 @@ All assets under the `clips/` directory are also served statically at `http://lo
 
 A lightweight dashboard is bundled at `http://localhost:3000/`. It offers:
 
-- A form for kicking off new extractions (subset of the CLI/API flags).
+- A form for kicking off new extractions (same payload the API expects).
 - A sortable, filterable gallery of every clip, complete with cover thumbnails, summaries, and direct download links (powered by `GET /api/clips`).
 - A per-folder source picker (selection required) mirrors the `srcMedias` option, so you can kick off runs for specific movies without constructing API calls by hand.
 - Cover and video links point to the static `/clips/...` assets, so you can preview or share results without touching the filesystem.
@@ -94,9 +81,8 @@ Key flags:
 - `--accurate`: re-encode each clip (`libx264`/`aac`) so the output duration matches the reported start/stop times exactly (performs a post-input seek).
 - `--clean-transcode`: force re-encoding with `-ss` placed *before* `-i`, ensuring clean frames while staying much faster than copy mode.
 - `--container`: choose `mkv` (default) or `mp4` for the generated files. Pair this with `--accurate` if you want re-encoded H.264/AAC `.mp4` clips.
-- `--videotoolbox` / `--hw-accel videotoolbox`: use Apple’s hardware encoder/decoder (ideal on an M4 Max) when running with `--accurate`. Hardware acceleration dramatically improves encode speed while keeping the buffers tight; the fallback software encoder remains available for other setups.
 - `--ffmpeg-stats`: forward `-stats` to ffmpeg so you can watch per-clip progress/status output in real time (handy for long `--accurate` runs).
-- `--ffmpeg-verbose`: raise ffmpeg’s log level to `info` so you can tail detailed progress output in the API/CLI console.
+- `--ffmpeg-verbose`: raise ffmpeg’s log level to `info` so you can tail detailed progress output in the API console.
 
 ### Importing legacy clips
 
@@ -110,7 +96,7 @@ The script scans the `clips/` directory (or `CLIPS_OUTPUT_ROOT`), parses each me
 
 Each invocation creates a timestamped subdirectory inside `clips/` (for example `clips/dino_2024-05-04T17-33-02-123Z/`). Inside that run directory you’ll find a `vids/` folder containing all of the extracted clips (the filenames still encode the source movie) **and** a `metadata.yaml` file that captures how those clips were produced.
 
-While running, the CLI emits benchmarking info: every clip log now includes the time `ffmpeg` spent on that item, and the end-of-run summary prints the total wall-clock time plus the average processing time per clip. Use those numbers to understand how much the `--accurate` mode costs versus the default fast stream copy.
+While running, each extraction logs benchmarking info: every clip log includes the time `ffmpeg` spent on that item, and the end-of-run summary prints the total wall-clock time plus the average processing time per clip. Use those numbers to understand how much the `--accurate` mode costs versus the default fast stream copy.
 
 ### Metadata schema
 
@@ -124,7 +110,6 @@ generated_at: 2024-05-04T17:33:02.123Z
 ffmpeg_path: ffmpeg
 mode: accurate-transcode
 container: mp4
-hw_accel: videotoolbox
 run_directory: dino_2024-05-04T17-33-02-123Z
 total_clips: 12
 clips:
@@ -141,7 +126,7 @@ clips:
       - "[00:07:12] Dr. Grant: But that's not what I'm gonna do."
 ```
 
-Use the metadata to trace which query, buffer, mode, container, hardware acceleration, cover image, summary, and source assets produced each clip—or as an input to additional tooling (e.g., concatenating runs). Re-run the CLI with different queries to build other themed compilations (for example, every Jurassic Park line that mentions “dino”).
+Use the metadata stored in the database to trace which query, buffer, mode, container, cover image, summary, and source assets produced each clip—or as an input to additional tooling (e.g., concatenating runs). Kick off new `/api/clips` runs with different queries to build other themed compilations (for example, every Jurassic Park line that mentions “dino”).
 
 > ℹ️ Set `OPENAI_API_KEY` (and optionally `OPENAI_MODEL`) in the environment to generate the clip summaries. If the key is absent the pipeline simply skips that step.
 

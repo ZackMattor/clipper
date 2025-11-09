@@ -5,7 +5,7 @@ import os from 'os';
 import { promises as fs } from 'fs';
 import { Repository } from 'typeorm';
 import { Subtitle } from '../database/entities/subtitle.entity';
-import { extractSubtitleTrack } from '../lib/clipExtractor';
+import { extractSubtitleTrack } from './clip-export.service';
 import { MediaService } from './media.service';
 import { SrcMedia, SrcMediaStatus } from '../database/entities/src-media.entity';
 

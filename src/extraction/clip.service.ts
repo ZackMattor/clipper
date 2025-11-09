@@ -4,7 +4,7 @@ import { randomUUID } from 'crypto';
 import path from 'path';
 import { promises as fs } from 'fs';
 import { Repository } from 'typeorm';
-import { ClipRunMetadata, ClipMetadataEntry } from '../lib/clipExtractor';
+import type { ClipRunMetadata, ClipMetadataEntry } from './clip-export.service';
 import { Clip } from '../database/entities/clip.entity';
 import { MediaService } from './media.service';
 import { ClipRecordDto } from './dto/clip-record.dto';

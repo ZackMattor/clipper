@@ -7,7 +7,6 @@
     "build": "tsc",
     "start": "node dist/main.js",
     "start:dev": "ts-node src/main.ts",
-    "extract-clips": "ts-node src/cli/extractClips.ts",
     "clips:import": "ts-node scripts/importClips.ts",
     "clips:sql_clear": "ts-node scripts/clearClips.ts"
   },

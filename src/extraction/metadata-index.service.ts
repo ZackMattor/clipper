@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { parse } from 'yaml';
-import { ClipRunMetadata } from '../lib/clipExtractor';
+import { ClipRunMetadata } from './clip-export.service';
 import { ClipIndexEntryDto } from './dto/extract-clips.dto';
 
 @Injectable()
@@ -26,7 +26,6 @@ export class MetadataIndexService implements OnModuleInit {
         ffmpeg_path: run.ffmpeg_path,
         mode: run.mode,
         container: run.container,
-        hw_accel: run.hw_accel,
         clip: { ...clip }
       }))
     );

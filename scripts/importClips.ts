@@ -5,7 +5,7 @@ import { randomUUID } from 'crypto';
 import { promises as fs } from 'fs';
 import { parse } from 'yaml';
 import { DataSource, Repository } from 'typeorm';
-import { ClipRunMetadata } from '../src/lib/clipExtractor';
+import type { ClipRunMetadata } from '../src/extraction/clip-export.service';
 import { Clip } from '../src/database/entities/clip.entity';
 import { SrcMedia } from '../src/database/entities/src-media.entity';
 import { Subtitle } from '../src/database/entities/subtitle.entity';

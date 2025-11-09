@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ExtractionService } from './extraction.service';
 import { ClipIndexEntryDto, ExtractClipsDto, ClipRunCollectionDto } from './dto/extract-clips.dto';
-import { ClipRunMetadata } from '../lib/clipExtractor';
+import { ClipRunMetadata } from './clip-export.service';
 import { MetadataIndexService } from './metadata-index.service';
 
 @ApiTags('Clips')
